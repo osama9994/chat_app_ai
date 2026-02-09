@@ -31,3 +31,11 @@ final class SendingMessageFailed extends ChatState {
 
   SendingMessageFailed(this.error);
 }
+//
+final class ImagePicked extends ChatServices{
+  final File image;
+
+  ImagePicked(this.image);
+}
+
+final class ImageRemoved extends ChatState {}

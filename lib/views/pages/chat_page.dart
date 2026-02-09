@@ -18,7 +18,7 @@ class _ChatPageState extends State<ChatPage> {
     super.initState();
     BlocProvider.of<ChatCubit>(context).startChattingSession();
     _messageController = TextEditingController();
-    _scrollController=ScrollController();
+    _scrollController = ScrollController();
   }
 
   @override
@@ -27,21 +27,21 @@ class _ChatPageState extends State<ChatPage> {
     _scrollController.dispose();
     super.dispose();
   }
-  void _scrollDown(){
-    WidgetsBinding.instance.addPersistentFrameCallback((_)=>
-    _scrollController.animateTo(
-      _scrollController.position.maxScrollExtent,
-       duration: Duration(milliseconds:700 ),
-        curve: Curves.easeInOut
-        ),
-    
 
+  void _scrollDown() {
+    WidgetsBinding.instance.addPersistentFrameCallback(
+      (_) => _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: Duration(milliseconds: 700),
+        curve: Curves.easeInOut,
+      ),
     );
-  } 
+  }
 
   @override
   Widget build(BuildContext context) {
     final chatCubit = BlocProvider.of<ChatCubit>(context);
+    final size = MediaQuery.of(context).size;
     return Scaffold(
       appBar: AppBar(title: Text("Chat with AI")),
       body: SafeArea(
@@ -58,7 +58,7 @@ class _ChatPageState extends State<ChatPage> {
                       final messages = state.messages;
                       return ListView.separated(
                         controller: _scrollController,
-                        separatorBuilder:(_, _) =>const SizedBox(height: 8,) ,
+                        separatorBuilder: (_, _) => const SizedBox(height: 8),
                         itemCount: messages.length,
                         itemBuilder: (_, index) {
                           final message = messages[index];
@@ -71,54 +71,126 @@ class _ChatPageState extends State<ChatPage> {
                   },
                 ),
               ),
-              const SizedBox(height: 24,),
-              Row(
+              const SizedBox(height: 24),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _messageController,
-                      decoration: InputDecoration(hintText: "Type a message"),
-                      onSubmitted: (value) {
-                        chatCubit.sendMessage(_messageController.text);
-                        _messageController.clear();
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  BlocConsumer<ChatCubit, ChatState>(
+                  BlocBuilder<ChatCubit, ChatState>(
                     bloc: chatCubit,
-                    listenWhen:
-                        (previous, current) => current is SendingMessageFailed||current is ChatSuccess ,
-                    listener: (context, state) {
-                      if (state is SendingMessageFailed) {
-                        ScaffoldMessenger.of(
-                          context,
-                        ).showSnackBar(SnackBar(content: Text(state.error)));
-                      }else if(state is ChatSuccess){_scrollDown();}
-                    },
-                    buildWhen:
-                        (previous, current) =>
-                            current is MessageSent ||
-                            current is SendingMessage ||
-                            current is SendingMessageFailed,
-                    builder: (context, state) {
-                      if (state is SendingMessage) {
-                        return Center(
-                          child: CircularProgressIndicator.adaptive(),
+                    buildWhen: (previous, current) => current is ImagePicked||current is ImageRemoved,
+                    builder: (_, state) {
+                      if (state is ImagePicked) {
+                        return SizedBox(
+                          height: 200,
+                          width: size.width - 75,
+                          child: Card(
+                            color: Colors.white,
+                            child: Stack(
+                              children: [
+                               
+                                  
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(16),
+                                    child: Image.file(
+                                      (state as ImagePicked).image,
+                                      height: 200,
+                                      width: size.width - 100,
+                                      fit: BoxFit.fill,
+                                    ),
+                                  ),
+                                ),
+                                 Positioned(
+                                  top: 5,
+                                  right: 5,
+                                  child: DecoratedBox(
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: Colors.white,  
+                                    ),
+                                     child: InkWell(
+                                      onTap: () => chatCubit.removeImage,
+                                       child: Padding(
+                                         padding: const EdgeInsets.all(8.0),
+                                         child: Icon(Icons.close),
+                                       ),
+                                     ),
+                                    ),
+                                ),
+                              ],
+                            ),
+                          ),
                         );
                       }
-                      return IconButton(
-                        onPressed: () {
-                          chatCubit.sendMessage(_messageController.text);
-                          _messageController.clear();
-                          _scrollDown();
-                        },
-                        icon: const Icon(Icons.send),
-                      );
+                      return const SizedBox.shrink();
                     },
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _messageController,
+                          decoration: InputDecoration(
+                            hintText: "Type a message",
+                            suffix: InkWell(
+                              onTap: () async {
+                                await chatCubit.pickImage();
+                              },
+                              child: const Icon(Icons.camera_alt),
+                            ),
+                          ),
+
+                          onSubmitted: (value) {
+                            chatCubit.sendMessage(_messageController.text);
+                            _messageController.clear();
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      BlocConsumer<ChatCubit, ChatState>(
+                        bloc: chatCubit,
+                        listenWhen:
+                            (previous, current) =>
+                                current is SendingMessageFailed ||
+                                current is ChatSuccess,
+                        listener: (context, state) {
+                          if (state is SendingMessageFailed) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(state.error)),
+                            );
+                          } else if (state is ChatSuccess) {
+                            _scrollDown();
+                          }
+                        },
+                        buildWhen:
+                            (previous, current) =>
+                                current is MessageSent ||
+                                current is SendingMessage ||
+                                current is SendingMessageFailed,
+                        builder: (context, state) {
+                          if (state is SendingMessage) {
+                            return Center(
+                              child: CircularProgressIndicator.adaptive(),
+                            );
+                          }
+                          return IconButton(
+                            onPressed: () {
+                              chatCubit.sendMessage(_messageController.text);
+                              _messageController.clear();
+                              _scrollDown();
+                              chatCubit.removeImage();
+                            },
+                            icon: const Icon(Icons.send),
+                          );
+                        },
+                      ),
+                    ],
                   ),
                 ],
               ),
+              const SizedBox(height: 16),
             ],
           ),
         ),

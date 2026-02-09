@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:chat_app_ai/models/message_model.dart';
 import 'package:chat_app_ai/services/chat_services.dart';
+import 'package:chat_app_ai/services/native_services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 part 'chat_state.dart';
@@ -7,7 +10,9 @@ part 'chat_state.dart';
 class ChatCubit extends Cubit<ChatState> {
   ChatCubit() : super(ChatInitial());
   final chatServices = ChatServices();
+  final nativeServices=NativeServices();
   List<MessageModel> chatmMssages = [];
+  File? selectedImage;
   // Future<void> sendPrompt(String prompt) async {
   //   emit(SendingMessage());
   //   try {
@@ -23,6 +28,16 @@ class ChatCubit extends Cubit<ChatState> {
     chatServices.startChattingSession();
   }
 
+Future<void> pickImage()async{
+  final image=await nativeServices.pickImage();
+  if(image!=null){
+    selectedImage=image;
+    emit(ImagePicked(image) as ChatState);
+  }
+
+}
+
+
   Future<void> sendMessage(String message) async {
     emit(SendingMessage());
     try {
@@ -30,12 +45,13 @@ class ChatCubit extends Cubit<ChatState> {
         MessageModel(text: message, isUser: true, time: DateTime.now()),
       );
       emit(ChatSuccess(chatmMssages));
-      final response = await chatServices.sendMessage(message);
+      final response = await chatServices.sendMessage(message,selectedImage);
       chatmMssages.add(
         MessageModel(
           text: response ?? "No response from AI",
           isUser: false,
           time: DateTime.now(),
+          image: selectedImage,
         ),
       );
       emit(MessageSent());
@@ -44,4 +60,11 @@ class ChatCubit extends Cubit<ChatState> {
       emit(SendingMessageFailed(e.toString()));
     }
   }
+
+void removeImage()async{
+selectedImage=null;
+emit(ImageRemoved());
+}
+
+
 }

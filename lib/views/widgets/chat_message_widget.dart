@@ -36,7 +36,17 @@ class ChatMessageWidget extends StatelessWidget {
                       child: ListTile(
                         title:
                             message.isUser
-                                ? Text(message.text, style: textstyle)
+                                ? Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    if(message.image!=null)
+                                  ClipRRect(
+                                    borderRadius:BorderRadius.circular(16) ,
+                                    child: Image.file(message.image!,height: size.width-175,fit: BoxFit.fill,width: double.infinity,)),
+                                   const SizedBox(height: 8,),
+                                    Text(message.text, style: textstyle),
+                                  ],
+                                )
                                 : AnimatedTextKit(
                                   repeatForever: false,
                                   totalRepeatCount: 1,

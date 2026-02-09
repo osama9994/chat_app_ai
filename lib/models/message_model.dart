@@ -1,13 +1,17 @@
 
+import 'dart:io';
+
 class MessageModel {
 final String text;
 final bool isUser;
 final DateTime time;
+final File? image;
 
  const MessageModel({
     required this.text,
      required this.isUser,
-      required this.time
+      required this.time,
+      this.image,
       });
 
 
@@ -34,11 +38,13 @@ final DateTime time;
     String? text,
     bool? isUser,
     DateTime? time,
+    File? image,
   }) {
     return MessageModel(
       text: text ?? this.text,
       isUser: isUser ?? this.isUser,
       time: time ?? this.time,
+      image: image?? this.image,
     );
   }
 }
