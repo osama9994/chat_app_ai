@@ -1,4 +1,5 @@
 import 'package:chat_app_ai/chat%20cubit/chat_cubit.dart';
+import 'package:chat_app_ai/views/widgets/chat_message_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -41,18 +42,12 @@ class _ChatPageState extends State<ChatPage> {
                   builder: (context, state) {
                     if (state is ChatSuccess) {
                       final messages = state.messages;
-                      return ListView.builder(
+                      return ListView.separated(
+                        separatorBuilder:(_, _) =>const SizedBox(height: 8,) ,
                         itemCount: messages.length,
                         itemBuilder: (_, index) {
                           final message = messages[index];
-                          return ListTile(
-                            title: Text(message.text),
-                            subtitle: Text(message.time.toString()),
-                            trailing:
-                                message.isUser
-                                    ? Icon(Icons.person)
-                                    : Icon(Icons.computer),
-                          );
+                          return ChatMessageWidget(message: message);
                         },
                       );
                     } else {
