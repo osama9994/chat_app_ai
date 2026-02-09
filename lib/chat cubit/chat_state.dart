@@ -10,7 +10,7 @@ final class ChatInitial extends ChatState {}
 final class ChatLoading extends ChatState {}
 
 final class ChatSuccess extends ChatState {
-  final List<MessageModel>? messages;
+  final List<MessageModel>messages;
 
   const ChatSuccess(this.messages);
 }
