@@ -1,5 +1,6 @@
 import 'package:chat_app_ai/chat%20cubit/chat_cubit.dart';
 import 'package:chat_app_ai/views/widgets/chat_message_widget.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -20,7 +21,33 @@ class _ChatPageState extends State<ChatPage> {
     _messageController = TextEditingController();
     _scrollController = ScrollController();
   }
+void showOptions(){
+  showCupertinoModalPopup(
+    context: context,
+   builder: (_){
+return CupertinoActionSheet(
+  actions: [
+    CupertinoActionSheetAction(
+      onPressed: (){
+        Navigator.pop(context);
+        BlocProvider.of<ChatCubit>(context).pickImageFromCamera();
 
+      },
+      child: const Text("Camera"),
+    ),
+    CupertinoActionSheetAction(
+      onPressed: (){
+        Navigator.pop(context);
+        BlocProvider.of<ChatCubit>(context).pickImageFromGallery();
+
+      },
+      child: const Text("Gallery"),
+    )
+  ],
+);
+   }
+   );
+}
   @override
   void dispose() {
     _messageController.dispose();
@@ -135,16 +162,19 @@ class _ChatPageState extends State<ChatPage> {
                           decoration: InputDecoration(
                             hintText: "Type a message",
                             suffix: InkWell(
-                              onTap: () async {
-                                await chatCubit.pickImage();
+                              onTap: ()  {
+                               // await chatCubit.pickImageFromCamera();
+                               showOptions();
                               },
-                              child: const Icon(Icons.camera_alt),
+                              child: const Icon(Icons.attachment),
                             ),
                           ),
 
                           onSubmitted: (value) {
-                            chatCubit.sendMessage(_messageController.text);
+                            chatCubit.sendMessage(value);
                             _messageController.clear();
+                            chatCubit.removeImage();
+                              _scrollDown();
                           },
                         ),
                       ),
@@ -179,8 +209,9 @@ class _ChatPageState extends State<ChatPage> {
                             onPressed: () {
                               chatCubit.sendMessage(_messageController.text);
                               _messageController.clear();
-                              _scrollDown();
                               chatCubit.removeImage();
+                              _scrollDown();
+                              
                             },
                             icon: const Icon(Icons.send),
                           );

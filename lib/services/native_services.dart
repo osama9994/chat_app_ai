@@ -5,8 +5,8 @@ import 'package:image_picker/image_picker.dart';
 class NativeServices {
 final _imagePicker=ImagePicker();
 
-Future pickImage()async{
- final image=await _imagePicker.pickImage(source: ImageSource.camera);
+Future pickImage(ImageSource source)async{
+ final image=await _imagePicker.pickImage(source: source);
 if(image!=null){
   return File(image.path);
 }else {
